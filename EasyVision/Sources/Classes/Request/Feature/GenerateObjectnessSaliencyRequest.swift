@@ -20,8 +20,6 @@ public class GenerateObjectnessSaliencyRequest: ImageBasedRequest<SalientObjectR
                 )
             }
             completion(.success(mapped))
-        }
-        applyCommon(req)
-        return req
+        }        return req
     }
 }

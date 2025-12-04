@@ -41,9 +41,7 @@ public class CoreMLRequest: ImageBasedRequest<CoreMLResult> {
             // VNCoreMLRequest 可能返回多种 Observation 子类
             let mapped = results.map { CoreMLResult(observation: $0) }
             completion(.success(mapped))
-        }
-        applyCommon(req)
-        if let opt = imageCropAndScaleOption {
+        }        if let opt = imageCropAndScaleOption {
             req.imageCropAndScaleOption = opt
         }
         return req

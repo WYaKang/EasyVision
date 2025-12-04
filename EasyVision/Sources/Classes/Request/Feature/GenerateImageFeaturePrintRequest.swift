@@ -32,7 +32,6 @@ public class GenerateImageFeaturePrintRequest: ImageBasedRequest<FeaturePrintRes
             VNGenerateImageFeaturePrintRequest.self,
             observationType: VNFeaturePrintObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 if let v = self.imageCropAndScaleOption {
                     req.imageCropAndScaleOption = v
                 }

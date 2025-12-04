@@ -21,7 +21,6 @@ public class TrackOpticalFlowRequest: ImageBasedRequest<TrackOpticalFlowResult> 
             VNTrackOpticalFlowRequest.self,
             observationType: VNPixelBufferObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 if let acc = self.computationAccuracy { req.computationAccuracy = acc }
                 if let fmt = self.outputPixelFormat { req.outputPixelFormat = fmt }
             },

@@ -20,7 +20,6 @@ public class GeneratePersonSegmentationRequest: ImageBasedRequest<PersonSegmenta
             VNGeneratePersonSegmentationRequest.self,
             observationType: VNPixelBufferObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 if let q = self.qualityLevel { req.qualityLevel = q }
                 if let f = self.outputPixelFormat { req.outputPixelFormat = f }
             },

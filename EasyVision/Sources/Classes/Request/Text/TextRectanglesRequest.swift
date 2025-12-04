@@ -20,7 +20,6 @@ public class TextRectanglesRequest: ImageBasedRequest<TextRectResult> {
             VNDetectTextRectanglesRequest.self,
             observationType: VNTextObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 req.reportCharacterBoxes = self.reportCharacterBoxes
             },
             transform: { obs in

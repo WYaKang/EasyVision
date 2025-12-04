@@ -6,11 +6,13 @@
 //
 
 import Foundation
+import os
 
-/// 简单的原子操作包装器
-/// 用于在并发环境下安全地读写值
+/// 高性能原子操作包装器
+/// 使用 os_unfair_lock 替代 NSLock 以获得更低的开销
+/// 注意：os_unfair_lock 是互斥锁，不可重入
 public final class Atomic<T> {
-    private let lock = NSLock()
+    private var _lock = os_unfair_lock()
     private var _value: T
     
     public init(_ value: T) {
@@ -20,13 +22,13 @@ public final class Atomic<T> {
     /// 获取当前值
     public var value: T {
         get {
-            lock.lock()
-            defer { lock.unlock() }
+            os_unfair_lock_lock(&_lock)
+            defer { os_unfair_lock_unlock(&_lock) }
             return _value
         }
         set {
-            lock.lock()
-            defer { lock.unlock() }
+            os_unfair_lock_lock(&_lock)
+            defer { os_unfair_lock_unlock(&_lock) }
             _value = newValue
         }
     }
@@ -37,8 +39,8 @@ public final class Atomic<T> {
     ///   - new: 如果当前值等于期望值，则写入的新值
     /// - Returns: 是否交换成功
     public func compareAndSwap(expected: T, new: T) -> Bool where T: Equatable {
-        lock.lock()
-        defer { lock.unlock() }
+        os_unfair_lock_lock(&_lock)
+        defer { os_unfair_lock_unlock(&_lock) }
         if _value == expected {
             _value = new
             return true
@@ -48,8 +50,8 @@ public final class Atomic<T> {
     
     /// 安全地修改值并返回旧值
     public func modify(_ block: (inout T) -> Void) -> T {
-        lock.lock()
-        defer { lock.unlock() }
+        os_unfair_lock_lock(&_lock)
+        defer { os_unfair_lock_unlock(&_lock) }
         let oldValue = _value
         block(&_value)
         return oldValue

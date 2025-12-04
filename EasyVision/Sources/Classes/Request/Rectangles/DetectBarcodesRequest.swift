@@ -29,7 +29,6 @@ public class DetectBarcodesRequest: ImageBasedRequest<BarcodeResult> {
             VNDetectBarcodesRequest.self,
             observationType: VNBarcodeObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 if let syms = self.symbologies {
                     req.symbologies = syms
                 }

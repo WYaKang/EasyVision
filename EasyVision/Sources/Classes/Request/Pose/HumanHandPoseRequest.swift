@@ -20,7 +20,6 @@ public class HumanHandPoseRequest: ImageBasedRequest<HandPoseResult> {
             VNDetectHumanHandPoseRequest.self,
             observationType: VNHumanHandPoseObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 if let m = self.maximumHandCount {
                     req.maximumHandCount = m
                 }

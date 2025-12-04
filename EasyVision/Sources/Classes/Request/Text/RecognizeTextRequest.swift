@@ -40,7 +40,6 @@ public class RecognizeTextRequest: ImageBasedRequest<RecognizedTextResult> {
             VNRecognizeTextRequest.self,
             observationType: VNRecognizedTextObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 req.recognitionLevel = self.recognitionLevel
                 req.usesLanguageCorrection = self.usesLanguageCorrection
                 if let langs = self.recognitionLanguages {

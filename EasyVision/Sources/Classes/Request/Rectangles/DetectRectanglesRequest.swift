@@ -34,7 +34,6 @@ public class DetectRectanglesRequest: ImageBasedRequest<RectangleResult> {
             VNDetectRectanglesRequest.self,
             observationType: VNRectangleObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 if let v = self.minimumAspectRatio { req.minimumAspectRatio = v }
                 if let v = self.maximumAspectRatio { req.maximumAspectRatio = v }
                 if let v = self.quadratureTolerance { req.quadratureTolerance = v }

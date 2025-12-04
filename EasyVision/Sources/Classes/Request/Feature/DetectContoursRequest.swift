@@ -26,7 +26,6 @@ public class DetectContoursRequest: ImageBasedRequest<ContourResult> {
             VNDetectContoursRequest.self,
             observationType: VNContoursObservation.self,
             configuration: { req in
-                self.applyCommon(req)
                 if let v = self.contrastAdjustment { req.contrastAdjustment = v }
                 if let v = self.detectDarkOnLight { req.detectsDarkOnLight = v }
                 if let v = self.maximumImageDimension { req.maximumImageDimension = v }
