@@ -11,6 +11,7 @@ import UIKit
 import CoreImage
 import CoreVideo
 import AVFoundation
+import ImageIO
 
 // MARK: - Vision Input
 
@@ -46,7 +47,7 @@ public enum VisionInput {
         switch self {
         case .image(let img):
             guard let cgImage = img.cgImage else { throw EasyVisionError.invalidImage }
-            return VNImageRequestHandler(cgImage: cgImage, options: options)
+            return VNImageRequestHandler(cgImage: cgImage, orientation: img.cgImageOrientation, options: options)
         case .ciImage(let img):
             return VNImageRequestHandler(ciImage: img, options: options)
         case .pixelBuffer(let pb):
@@ -56,6 +57,24 @@ public enum VisionInput {
             return VNImageRequestHandler(cvPixelBuffer: pb, options: options)
         case .cgImage(let img):
             return VNImageRequestHandler(cgImage: img, options: options)
+        }
+    }
+}
+
+// MARK: - Internal Extensions
+
+extension UIImage {
+    var cgImageOrientation: CGImagePropertyOrientation {
+        switch imageOrientation {
+        case .up: return .up
+        case .down: return .down
+        case .left: return .left
+        case .right: return .right
+        case .upMirrored: return .upMirrored
+        case .downMirrored: return .downMirrored
+        case .leftMirrored: return .leftMirrored
+        case .rightMirrored: return .rightMirrored
+        @unknown default: return .up
         }
     }
 }

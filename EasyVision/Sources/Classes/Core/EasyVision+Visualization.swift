@@ -43,24 +43,27 @@ public struct FaceRectVisualizer: EasyVisionVisualizer {
         public var color: UIColor
         public var lineWidth: CGFloat
         public var showConfidence: Bool
-        public var confidenceFont: UIFont
-        public var confidenceTextColor: UIColor
-        public var confidenceBackgroundColor: UIColor
+        public var showAngles: Bool // New
+        public var infoFont: UIFont // Renamed/General
+        public var infoTextColor: UIColor
+        public var infoBackgroundColor: UIColor
         
         public init(
             color: UIColor = .green,
             lineWidth: CGFloat = 5,
-            showConfidence: Bool = false,
-            confidenceFont: UIFont = .boldSystemFont(ofSize: 14),
-            confidenceTextColor: UIColor = .white,
-            confidenceBackgroundColor: UIColor = .black.withAlphaComponent(0.6)
+            showConfidence: Bool = true,
+            showAngles: Bool = true,
+            infoFont: UIFont = .boldSystemFont(ofSize: 14),
+            infoTextColor: UIColor = .white,
+            infoBackgroundColor: UIColor = .black.withAlphaComponent(0.6)
         ) {
             self.color = color
             self.lineWidth = lineWidth
             self.showConfidence = showConfidence
-            self.confidenceFont = confidenceFont
-            self.confidenceTextColor = confidenceTextColor
-            self.confidenceBackgroundColor = confidenceBackgroundColor
+            self.showAngles = showAngles
+            self.infoFont = infoFont
+            self.infoTextColor = infoTextColor
+            self.infoBackgroundColor = infoBackgroundColor
         }
     }
     
@@ -78,9 +81,19 @@ public struct FaceRectVisualizer: EasyVisionVisualizer {
             context.addRect(result.frame)
             context.strokePath()
             
-            // Draw Confidence
+            // Prepare Text
+            var texts: [String] = []
             if style.showConfidence {
-                let text = String(format: "Conf: %.2f", result.confidence)
+                texts.append(String(format: "Conf: %.2f", result.confidence))
+            }
+            if style.showAngles {
+                if let yaw = result.yawDegrees { texts.append(String(format: "Y: %.0f°", yaw)) }
+                if let pitch = result.pitchDegrees { texts.append(String(format: "P: %.0f°", pitch)) }
+                if let roll = result.rollDegrees { texts.append(String(format: "R: %.0f°", roll)) }
+            }
+            
+            if !texts.isEmpty {
+                let text = texts.joined(separator: " ")
                 drawText(text, at: result.frame.origin, context: context)
             }
         }
@@ -88,9 +101,9 @@ public struct FaceRectVisualizer: EasyVisionVisualizer {
     
     private func drawText(_ text: String, at point: CGPoint, context: CGContext) {
         let attrs: [NSAttributedString.Key: Any] = [
-            .font: style.confidenceFont,
-            .foregroundColor: style.confidenceTextColor,
-            .backgroundColor: style.confidenceBackgroundColor
+            .font: style.infoFont,
+            .foregroundColor: style.infoTextColor,
+            .backgroundColor: style.infoBackgroundColor
         ]
         let size = (text as NSString).size(withAttributes: attrs)
         let rect = CGRect(x: point.x, y: max(0, point.y - size.height), width: size.width, height: size.height)
@@ -494,6 +507,276 @@ public struct TrajectoryVisualizer: EasyVisionVisualizer {
     }
 }
 
+// MARK: - 10. Face Capture Quality Visualization
+
+/// 人脸质量可视化器
+public struct FaceCaptureQualityVisualizer: EasyVisionVisualizer {
+    public typealias ResultType = FaceCaptureQualityResult
+    
+    public struct Style {
+        public var color: UIColor
+        public var lineWidth: CGFloat
+        public var font: UIFont
+        public var textColor: UIColor
+        public var textBackgroundColor: UIColor
+        
+        public init(
+            color: UIColor = .blue,
+            lineWidth: CGFloat = 3,
+            font: UIFont = .boldSystemFont(ofSize: 14),
+            textColor: UIColor = .white,
+            textBackgroundColor: UIColor = .black.withAlphaComponent(0.6)
+        ) {
+            self.color = color
+            self.lineWidth = lineWidth
+            self.font = font
+            self.textColor = textColor
+            self.textBackgroundColor = textBackgroundColor
+        }
+    }
+    
+    public let style: Style
+    
+    public init(style: Style = Style()) {
+        self.style = style
+    }
+    
+    public func draw(_ result: FaceCaptureQualityResult, on image: UIImage) -> UIImage? {
+        return DrawingContext.perform(on: image) { context in
+            context.setStrokeColor(style.color.cgColor)
+            context.setLineWidth(style.lineWidth)
+            context.addRect(result.frame)
+            context.strokePath()
+            
+            let qualityStr = result.quality.map { String(format: "%.2f", $0) } ?? "N/A"
+            let text = "Quality: \(result.qualityLevel) (\(qualityStr))"
+            
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: style.font,
+                .foregroundColor: style.textColor,
+                .backgroundColor: style.textBackgroundColor
+            ]
+            let size = (text as NSString).size(withAttributes: attrs)
+            let rect = CGRect(x: result.frame.minX, y: max(0, result.frame.minY - size.height), width: size.width, height: size.height)
+            (text as NSString).draw(in: rect, withAttributes: attrs)
+        }
+    }
+}
+
+// MARK: - 11. Animal Body Pose Visualization
+
+/// 动物姿态可视化器
+public struct AnimalBodyPoseVisualizer: EasyVisionVisualizer {
+    public typealias ResultType = AnimalBodyPoseResult
+    
+    public struct Style {
+        public var pointColor: UIColor
+        public var pointRadius: CGFloat
+        
+        public init(pointColor: UIColor = .cyan, pointRadius: CGFloat = 4) {
+            self.pointColor = pointColor
+            self.pointRadius = pointRadius
+        }
+    }
+    
+    public let style: Style
+    
+    public init(style: Style = Style()) {
+        self.style = style
+    }
+    
+    public func draw(_ result: AnimalBodyPoseResult, on image: UIImage) -> UIImage? {
+        return DrawingContext.perform(on: image) { context in
+            context.setFillColor(style.pointColor.cgColor)
+            for point in result.points.values {
+                let rect = CGRect(
+                    x: point.x - style.pointRadius,
+                    y: point.y - style.pointRadius,
+                    width: style.pointRadius * 2,
+                    height: style.pointRadius * 2
+                )
+                context.addEllipse(in: rect)
+            }
+            context.fillPath()
+        }
+    }
+}
+
+// MARK: - 12. Body Pose 3D Visualization (2D Projection)
+
+/// 3D 人体姿态可视化器 (绘制2D投影)
+public struct BodyPose3DVisualizer: EasyVisionVisualizer {
+    public typealias ResultType = BodyPose3DResult
+    
+    public struct Style {
+        public var pointColor: UIColor
+        public var pointRadius: CGFloat
+        public var lineColor: UIColor
+        public var lineWidth: CGFloat
+        
+        public init(pointColor: UIColor = .purple, pointRadius: CGFloat = 5, lineColor: UIColor = .yellow, lineWidth: CGFloat = 2) {
+            self.pointColor = pointColor
+            self.pointRadius = pointRadius
+            self.lineColor = lineColor
+            self.lineWidth = lineWidth
+        }
+    }
+    
+    public let style: Style
+    
+    public init(style: Style = Style()) {
+        self.style = style
+    }
+    
+    public func draw(_ result: BodyPose3DResult, on image: UIImage) -> UIImage? {
+        return DrawingContext.perform(on: image) { context in
+            context.setFillColor(style.pointColor.cgColor)
+            for point in result.points2D.values {
+                let rect = CGRect(
+                    x: point.x - style.pointRadius,
+                    y: point.y - style.pointRadius,
+                    width: style.pointRadius * 2,
+                    height: style.pointRadius * 2
+                )
+                context.addEllipse(in: rect)
+            }
+            context.fillPath()
+            
+            // Draw Frame
+            context.setStrokeColor(style.lineColor.cgColor)
+            context.setLineWidth(style.lineWidth)
+            context.addRect(result.frame)
+            context.strokePath()
+        }
+    }
+}
+
+// MARK: - 13. Human Rect Visualization
+
+public struct HumanRectVisualizer: EasyVisionVisualizer {
+    public typealias ResultType = HumanRectResult
+    public struct Style {
+        public var color: UIColor
+        public var lineWidth: CGFloat
+        public init(color: UIColor = .yellow, lineWidth: CGFloat = 3) {
+            self.color = color
+            self.lineWidth = lineWidth
+        }
+    }
+    public let style: Style
+    public init(style: Style = Style()) { self.style = style }
+    
+    public func draw(_ result: HumanRectResult, on image: UIImage) -> UIImage? {
+        return DrawingContext.perform(on: image) { context in
+            context.setStrokeColor(style.color.cgColor)
+            context.setLineWidth(style.lineWidth)
+            context.addRect(result.frame)
+            context.strokePath()
+        }
+    }
+}
+
+// MARK: - 14. Rectangle Visualization
+
+public struct RectangleVisualizer: EasyVisionVisualizer {
+    public typealias ResultType = RectangleResult
+    public struct Style {
+        public var color: UIColor
+        public var lineWidth: CGFloat
+        public init(color: UIColor = .blue, lineWidth: CGFloat = 3) {
+            self.color = color
+            self.lineWidth = lineWidth
+        }
+    }
+    public let style: Style
+    public init(style: Style = Style()) { self.style = style }
+    
+    public func draw(_ result: RectangleResult, on image: UIImage) -> UIImage? {
+        return DrawingContext.perform(on: image) { context in
+            context.setStrokeColor(style.color.cgColor)
+            context.setLineWidth(style.lineWidth)
+            context.addRect(result.frame)
+            context.strokePath()
+        }
+    }
+}
+
+// MARK: - 15. Animal Recognition Visualization
+
+public struct AnimalRecognitionVisualizer: EasyVisionVisualizer {
+    public typealias ResultType = AnimalRecognitionResult
+    public struct Style {
+        public var color: UIColor
+        public var lineWidth: CGFloat
+        public var font: UIFont
+        public var textColor: UIColor
+        public init(color: UIColor = .orange, lineWidth: CGFloat = 3, font: UIFont = .boldSystemFont(ofSize: 14), textColor: UIColor = .white) {
+            self.color = color
+            self.lineWidth = lineWidth
+            self.font = font
+            self.textColor = textColor
+        }
+    }
+    public let style: Style
+    public init(style: Style = Style()) { self.style = style }
+    
+    public func draw(_ result: AnimalRecognitionResult, on image: UIImage) -> UIImage? {
+        return DrawingContext.perform(on: image) { context in
+            context.setStrokeColor(style.color.cgColor)
+            context.setLineWidth(style.lineWidth)
+            context.addRect(result.frame)
+            context.strokePath()
+            
+            let text = "\(result.identifier) (%.2f)".uppercased()
+            let fullText = String(format: text, result.confidence)
+            
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: style.font,
+                .foregroundColor: style.textColor,
+                .backgroundColor: style.color.withAlphaComponent(0.6)
+            ]
+            let size = (fullText as NSString).size(withAttributes: attrs)
+            let rect = CGRect(x: result.frame.minX, y: max(0, result.frame.minY - size.height), width: size.width, height: size.height)
+            (fullText as NSString).draw(in: rect, withAttributes: attrs)
+        }
+    }
+}
+
+// MARK: - 16. Image Classification Visualization
+
+public struct ClassifyImageVisualizer: EasyVisionVisualizer {
+    public typealias ResultType = ImageClassificationResult
+    public struct Style {
+        public var font: UIFont
+        public var textColor: UIColor
+        public var backgroundColor: UIColor
+        public init(font: UIFont = .boldSystemFont(ofSize: 20), textColor: UIColor = .white, backgroundColor: UIColor = .black.withAlphaComponent(0.5)) {
+            self.font = font
+            self.textColor = textColor
+            self.backgroundColor = backgroundColor
+        }
+    }
+    public let style: Style
+    public init(style: Style = Style()) { self.style = style }
+    
+    public func draw(_ result: ImageClassificationResult, on image: UIImage) -> UIImage? {
+        return DrawingContext.perform(on: image) { context in
+            let text = "\(result.identifier) (%.2f)"
+            let fullText = String(format: text, result.confidence)
+            
+            let attrs: [NSAttributedString.Key: Any] = [
+                .font: style.font,
+                .foregroundColor: style.textColor,
+                .backgroundColor: style.backgroundColor
+            ]
+            let size = (fullText as NSString).size(withAttributes: attrs)
+            // Draw at bottom center
+            let rect = CGRect(x: (image.size.width - size.width) / 2, y: image.size.height - size.height - 20, width: size.width, height: size.height)
+            (fullText as NSString).draw(in: rect, withAttributes: attrs)
+        }
+    }
+}
+
 // MARK: - Backward Compatibility Extensions
 
 public extension FaceRectResult {
@@ -556,5 +839,55 @@ public extension TrajectoryResult {
     func draw(on image: UIImage, color: UIColor = .magenta) -> UIImage? {
         let style = TrajectoryVisualizer.Style(color: color)
         return TrajectoryVisualizer(style: style).draw(self, on: image)
+    }
+}
+
+// MARK: - New Result Extensions
+
+public extension FaceCaptureQualityResult {
+    func draw(on image: UIImage, color: UIColor = .blue) -> UIImage? {
+        let style = FaceCaptureQualityVisualizer.Style(color: color)
+        return FaceCaptureQualityVisualizer(style: style).draw(self, on: image)
+    }
+}
+
+public extension AnimalBodyPoseResult {
+    func draw(on image: UIImage, pointColor: UIColor = .cyan) -> UIImage? {
+        let style = AnimalBodyPoseVisualizer.Style(pointColor: pointColor)
+        return AnimalBodyPoseVisualizer(style: style).draw(self, on: image)
+    }
+}
+
+public extension BodyPose3DResult {
+    func draw(on image: UIImage, pointColor: UIColor = .purple) -> UIImage? {
+        let style = BodyPose3DVisualizer.Style(pointColor: pointColor)
+        return BodyPose3DVisualizer(style: style).draw(self, on: image)
+    }
+}
+
+public extension HumanRectResult {
+    func draw(on image: UIImage, color: UIColor = .yellow) -> UIImage? {
+        let style = HumanRectVisualizer.Style(color: color)
+        return HumanRectVisualizer(style: style).draw(self, on: image)
+    }
+}
+
+public extension RectangleResult {
+    func draw(on image: UIImage, color: UIColor = .blue) -> UIImage? {
+        let style = RectangleVisualizer.Style(color: color)
+        return RectangleVisualizer(style: style).draw(self, on: image)
+    }
+}
+
+public extension AnimalRecognitionResult {
+    func draw(on image: UIImage, color: UIColor = .orange) -> UIImage? {
+        let style = AnimalRecognitionVisualizer.Style(color: color)
+        return AnimalRecognitionVisualizer(style: style).draw(self, on: image)
+    }
+}
+
+public extension ImageClassificationResult {
+    func draw(on image: UIImage) -> UIImage? {
+        return ClassifyImageVisualizer().draw(self, on: image)
     }
 }

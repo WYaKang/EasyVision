@@ -16,6 +16,12 @@ class VisionDemoViewModel: ObservableObject {
     @Published var showingPicker = false
     @Published var errorMessage: String?
     
+    init(defaultImageName: String? = nil) {
+        if let name = defaultImageName, let img = UIImage(named: name) {
+            self.image = img
+        }
+    }
+    
     func processImage(action: @escaping (UIImage) async throws -> UIImage?) {
         guard let uiImage = image else { return }
         isProcessing = true

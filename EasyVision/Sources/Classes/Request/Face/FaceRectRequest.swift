@@ -11,6 +11,23 @@ public struct FaceRectResult {
     public let yaw: Float?
     /// 俯仰角（Pitch）：上下抬头角度（弧度，iOS 15+）
     public let pitch: Float?
+    
+    // MARK: - Convenience Degrees
+    
+    /// 滚动角（角度）
+    public var rollDegrees: Float? {
+        roll.map { $0 * 180 / .pi }
+    }
+    
+    /// 偏航角（角度）
+    public var yawDegrees: Float? {
+        yaw.map { $0 * 180 / .pi }
+    }
+    
+    /// 俯仰角（角度）
+    public var pitchDegrees: Float? {
+        pitch.map { $0 * 180 / .pi }
+    }
 }
 
 public class FaceRectRequest: ImageBasedRequest<FaceRectResult> {

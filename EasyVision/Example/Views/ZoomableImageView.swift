@@ -11,64 +11,64 @@ import UIKit
 struct ZoomableImageView: View {
     let image: UIImage
     
-    @State private var scale: CGFloat = 1.0
-    @State private var lastScale: CGFloat = 1.0
-    @State private var offset: CGSize = .zero
-    @State private var lastOffset: CGSize = .zero
-    
     var body: some View {
-        GeometryReader { geometry in
-            ZStack {
-                Color.black.opacity(0.05) // Background to catch gestures
-                
-                Image(uiImage: image)
-                    .resizable()
-                    .scaledToFit()
-                    .scaleEffect(scale)
-                    .offset(offset)
-                    .gesture(
-                        MagnificationGesture()
-                            .onChanged { value in
-                                let delta = value / lastScale
-                                scale = lastScale * value
-                            }
-                            .onEnded { value in
-                                lastScale = scale
-                                if scale < 1.0 {
-                                    withAnimation {
-                                        scale = 1.0
-                                        lastScale = 1.0
-                                        offset = .zero
-                                        lastOffset = .zero
-                                    }
-                                }
-                            }
-                    )
-                    .simultaneousGesture(
-                        DragGesture()
-                            .onChanged { value in
-                                guard scale > 1.0 else { return }
-                                offset = CGSize(
-                                    width: lastOffset.width + value.translation.width,
-                                    height: lastOffset.height + value.translation.height
-                                )
-                            }
-                            .onEnded { value in
-                                guard scale > 1.0 else { return }
-                                lastOffset = offset
-                            }
-                    )
-                    // Double tap to reset
-                    .onTapGesture(count: 2) {
-                        withAnimation {
-                            scale = 1.0
-                            lastScale = 1.0
-                            offset = .zero
-                            lastOffset = .zero
-                        }
-                    }
-            }
-            .clipShape(Rectangle())
+        ZoomableScrollView {
+            Image(uiImage: image)
+                .resizable()
+                .scaledToFit()
         }
     }
 }
+
+struct ZoomableScrollView<Content: View>: UIViewRepresentable {
+    private var content: Content
+    
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+    
+    func makeUIView(context: Context) -> UIScrollView {
+        let scrollView = UIScrollView()
+        scrollView.delegate = context.coordinator
+        scrollView.maximumZoomScale = 5.0
+        scrollView.minimumZoomScale = 1.0
+        scrollView.bouncesZoom = true
+        scrollView.showsHorizontalScrollIndicator = false
+        scrollView.showsVerticalScrollIndicator = false
+        
+        let hostedView = context.coordinator.hostingController.view!
+        hostedView.translatesAutoresizingMaskIntoConstraints = true
+        hostedView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        hostedView.frame = scrollView.bounds
+        hostedView.backgroundColor = .clear
+        
+        scrollView.addSubview(hostedView)
+        
+        return scrollView
+    }
+    
+    func updateUIView(_ uiView: UIScrollView, context: Context) {
+        context.coordinator.hostingController.rootView = self.content
+        // Need to ensure the content view is sized correctly within the scroll view
+        // This is a simplified implementation. Ideally, we check content size.
+        // But for Image scaledToFit, it's tricky.
+        // A better approach for Image specifically:
+    }
+    
+    func makeCoordinator() -> Coordinator {
+        return Coordinator(hostingController: UIHostingController(rootView: self.content))
+    }
+    
+    class Coordinator: NSObject, UIScrollViewDelegate {
+        var hostingController: UIHostingController<Content>
+        
+        init(hostingController: UIHostingController<Content>) {
+            self.hostingController = hostingController
+        }
+        
+        func viewForZooming(in scrollView: UIScrollView) -> UIView? {
+            return hostingController.view
+        }
+    }
+}
+

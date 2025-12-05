@@ -38,15 +38,21 @@ struct ImagePicker: UIViewControllerRepresentable {
 // 通用演示视图模板
 struct VisionDemoView<Result>: View {
     let title: String
-    @StateObject private var viewModel = VisionDemoViewModel()
+    @StateObject private var viewModel: VisionDemoViewModel
     let performRequest: (UIImage) async throws -> UIImage?
+    
+    init(title: String, defaultImageName: String? = nil, performRequest: @escaping (UIImage) async throws -> UIImage?) {
+        self.title = title
+        self._viewModel = StateObject(wrappedValue: VisionDemoViewModel(defaultImageName: defaultImageName))
+        self.performRequest = performRequest
+    }
     
     var body: some View {
         VStack(spacing: 20) {
             // 图片区域
             if let displayImage = viewModel.resultImage ?? viewModel.image {
                 ZoomableImageView(image: displayImage)
-                    .frame(height: 400)
+                    .frame(height: UIScreen.main.bounds.height * 0.75) // 扩大到约 75-80%
                     .background(Color.gray.opacity(0.1))
                     .cornerRadius(10)
                     .overlay(
@@ -62,7 +68,7 @@ struct VisionDemoView<Result>: View {
             } else {
                 Rectangle()
                     .fill(Color.gray.opacity(0.2))
-                    .frame(height: 300)
+                    .frame(height: UIScreen.main.bounds.height * 0.75)
                     .cornerRadius(10)
                     .overlay(
                         VStack {

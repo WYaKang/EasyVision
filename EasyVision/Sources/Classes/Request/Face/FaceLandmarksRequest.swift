@@ -35,21 +35,33 @@ public class FaceLandmarksRequest: ImageBasedRequest<FaceLandmarksResult> {
             observationType: VNFaceObservation.self,
             transform: { obs in
                 let lm = obs.landmarks
+                
+                // Helper closure for conversion
+                let convert: (VNFaceLandmarkRegion2D?) -> [CGPoint]? = { region in
+                    guard let region = region else { return nil }
+                    // Use Vision's built-in conversion (returns points in Image Coordinates, origin Bottom-Left)
+                    let points = region.pointsInImage(imageSize: context.imageSize)
+                    // Convert to UIKit Coordinates (origin Top-Left)
+                    return points.map { p in
+                        CGPoint(x: p.x, y: context.imageSize.height - p.y)
+                    }
+                }
+                
                 return FaceLandmarksResult(
                     frame: self.convertRect(obs.boundingBox, imageSize: context.imageSize),
                     confidence: obs.confidence,
-                    leftEye: self.convertRegionPoints(lm?.leftEye, in: obs.boundingBox, imageSize: context.imageSize),
-                    rightEye: self.convertRegionPoints(lm?.rightEye, in: obs.boundingBox, imageSize: context.imageSize),
-                    leftEyebrow: self.convertRegionPoints(lm?.leftEyebrow, in: obs.boundingBox, imageSize: context.imageSize),
-                    rightEyebrow: self.convertRegionPoints(lm?.rightEyebrow, in: obs.boundingBox, imageSize: context.imageSize),
-                    nose: self.convertRegionPoints(lm?.nose, in: obs.boundingBox, imageSize: context.imageSize),
-                    noseCrest: self.convertRegionPoints(lm?.noseCrest, in: obs.boundingBox, imageSize: context.imageSize),
-                    medianLine: self.convertRegionPoints(lm?.medianLine, in: obs.boundingBox, imageSize: context.imageSize),
-                    outerLips: self.convertRegionPoints(lm?.outerLips, in: obs.boundingBox, imageSize: context.imageSize),
-                    innerLips: self.convertRegionPoints(lm?.innerLips, in: obs.boundingBox, imageSize: context.imageSize),
-                    faceContour: self.convertRegionPoints(lm?.faceContour, in: obs.boundingBox, imageSize: context.imageSize),
-                    leftPupil: self.convertRegionPoints(lm?.leftPupil, in: obs.boundingBox, imageSize: context.imageSize),
-                    rightPupil: self.convertRegionPoints(lm?.rightPupil, in: obs.boundingBox, imageSize: context.imageSize)
+                    leftEye: convert(lm?.leftEye),
+                    rightEye: convert(lm?.rightEye),
+                    leftEyebrow: convert(lm?.leftEyebrow),
+                    rightEyebrow: convert(lm?.rightEyebrow),
+                    nose: convert(lm?.nose),
+                    noseCrest: convert(lm?.noseCrest),
+                    medianLine: convert(lm?.medianLine),
+                    outerLips: convert(lm?.outerLips),
+                    innerLips: convert(lm?.innerLips),
+                    faceContour: convert(lm?.faceContour),
+                    leftPupil: convert(lm?.leftPupil),
+                    rightPupil: convert(lm?.rightPupil)
                 )
             },
             completion: completion

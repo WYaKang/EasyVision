@@ -5,6 +5,8 @@ import simd
 public struct BodyPose3DResult {
     public let frame: CGRect
     public let joints: [String: SIMD3<Float>]
+    /// 投影到图像上的 2D 关键点
+    public let points2D: [String: CGPoint]
     /// 相机原点矩阵（从 Hip 到相机的变换）
     public let cameraOriginMatrix: simd_float4x4
     /// 估算身高（米）
@@ -18,7 +20,9 @@ public class HumanBodyPose3DRequest: ImageBasedRequest<BodyPose3DResult> {
             observationType: VNHumanBodyPose3DObservation.self,
             transform: { obs in
                 var joints: [String: SIMD3<Float>] = [:]
-                var points2D: [CGPoint] = []
+                var points2DMap: [String: CGPoint] = [:]
+                var points2DList: [CGPoint] = []
+                
                 for name in obs.availableJointNames {
                     if let rp = try? obs.recognizedPoint(name) {
                         let t = rp.position.columns.3
@@ -27,21 +31,25 @@ public class HumanBodyPose3DRequest: ImageBasedRequest<BodyPose3DResult> {
                     if let ip = try? obs.pointInImage(name) {
                         let p = CGPoint(x: CGFloat(ip.x) * context.imageSize.width,
                                         y: (1 - CGFloat(ip.y)) * context.imageSize.height)
-                        points2D.append(p)
+                        points2DMap[String(describing: name)] = p
+                        points2DList.append(p)
                     }
                 }
+                
                 let frame: CGRect
-                if let minX = points2D.map({ $0.x }).min(),
-                   let maxX = points2D.map({ $0.x }).max(),
-                   let minY = points2D.map({ $0.y }).min(),
-                   let maxY = points2D.map({ $0.y }).max() {
+                if let minX = points2DList.map({ $0.x }).min(),
+                   let maxX = points2DList.map({ $0.x }).max(),
+                   let minY = points2DList.map({ $0.y }).min(),
+                   let maxY = points2DList.map({ $0.y }).max() {
                     frame = CGRect(x: minX, y: minY, width: maxX - minX, height: maxY - minY)
                 } else {
                     frame = .zero
                 }
+                
                 return BodyPose3DResult(
                     frame: frame,
                     joints: joints,
+                    points2D: points2DMap,
                     cameraOriginMatrix: obs.cameraOriginMatrix,
                     bodyHeight: obs.bodyHeight
                 )
