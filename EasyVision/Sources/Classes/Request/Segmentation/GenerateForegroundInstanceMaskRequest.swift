@@ -14,7 +14,7 @@ public class GenerateForegroundInstanceMaskRequest: ImageBasedRequest<Foreground
         return create(
             VNGenerateForegroundInstanceMaskRequest.self,
             observationType: VNInstanceMaskObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 // 该请求返回单个 Observation，包含全图 mask 和实例信息
                 // mask 位于 instanceMask (CVPixelBuffer)
                 return ForegroundInstanceMaskResult(

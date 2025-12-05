@@ -82,26 +82,28 @@ open class ImageBasedRequest<R>: EasyVisionRequest {
     /// - Parameters:
     ///   - requestType: VNRequest 的类型
     ///   - observationType: 期望的 VNObservation 类型
-    ///   - creation: (可选) 自定义创建逻辑，如果为 nil 则调用默认 init()
+    ///   - creation: (可选) 自定义创建逻辑，接受 completionHandler 作为参数
     ///   - configuration: (可选) 额外的配置逻辑
     ///   - transform: 结果映射逻辑
     ///   - completion: 外部传入的完成回调
     public func create<VNReq: VNRequest, Obs: VNObservation>(
         _ requestType: VNReq.Type,
         observationType: Obs.Type,
-        creation: (() -> VNReq)? = nil,
+        creation: ((VNRequestCompletionHandler?) -> VNReq)? = nil,
         configuration: ((VNReq) -> Void)? = nil,
         transform: @escaping (Obs) -> R?,
         completion: @escaping (Result<[R], Error>) -> Void
     ) -> VNRequest {
         
-        // 1. 创建 Request
-        let request = creation?() ?? VNReq(completionHandler: nil)
-        
-        // 2. 设置通用 Completion Handler
-        request.completionHandler = { [weak self] req, error in
+        // 1. 定义 Completion Handler
+        let handler: VNRequestCompletionHandler = { [weak self] req, error in
             self?.handleCompletion(request: req, error: error, transform: transform, completion: completion)
         }
+        
+        // 2. 创建 Request
+        // 如果提供了 creation，则使用它创建 request，并传入 handler
+        // 否则使用 VNReq 的默认初始化方法 (需支持 completionHandler 参数)
+        let request = creation?(handler) ?? VNReq(completionHandler: handler)
         
         // 3. 应用通用配置
         applyCommonConfig(to: request)
@@ -113,14 +115,14 @@ open class ImageBasedRequest<R>: EasyVisionRequest {
     }
     
     /// 处理请求完成的回调
-    private func handleCompletion<VNReq: VNRequest, Obs: VNObservation>(
+    private func handleCompletion<Obs: VNObservation>(
         request: VNRequest,
         error: Error?,
         transform: @escaping (Obs) -> R?,
         completion: @escaping (Result<[R], Error>) -> Void
     ) {
         if let error = error {
-            EasyVisionLogger.shared.error("\(VNReq.self) failed: \(error.localizedDescription)")
+            EasyVisionLogger.shared.error("\(type(of: request)) failed: \(error.localizedDescription)")
             completion(.failure(EasyVisionError.visionError(error)))
             return
         }
@@ -128,11 +130,11 @@ open class ImageBasedRequest<R>: EasyVisionRequest {
         guard let results = request.results as? [Obs] else {
             // 结果为空或类型不匹配
             if request.results == nil {
-                EasyVisionLogger.shared.debug("\(VNReq.self) returned no results")
+                EasyVisionLogger.shared.debug("\(type(of: request)) returned no results")
                 completion(.success([]))
             } else {
                 let gotType = type(of: request.results?.first)
-                EasyVisionLogger.shared.warning("\(VNReq.self) type mismatch: expected \(Obs.self), got \(gotType)")
+                EasyVisionLogger.shared.warning("\(type(of: request)) type mismatch: expected \(Obs.self), got \(gotType)")
                 completion(.success([]))
             }
             return

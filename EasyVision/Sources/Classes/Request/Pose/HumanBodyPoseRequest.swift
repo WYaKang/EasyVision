@@ -12,7 +12,7 @@ public class HumanBodyPoseRequest: ImageBasedRequest<BodyPose2DResult> {
         return create(
             VNDetectHumanBodyPoseRequest.self,
             observationType: VNHumanBodyPoseObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 let dict = (try? obs.recognizedPoints(.all)) ?? [:]
                 var points: [String: CGPoint] = [:]
                 var confs: [String: Float] = [:]

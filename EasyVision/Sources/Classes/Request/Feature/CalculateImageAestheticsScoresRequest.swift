@@ -12,7 +12,7 @@ public class CalculateImageAestheticsScoresRequest: ImageBasedRequest<ImageAesth
             return create(
                 VNCalculateImageAestheticsScoresRequest.self,
                 observationType: VNImageAestheticsScoresObservation.self,
-                                transform: { obs in
+                transform: { obs in
                     ImageAestheticsResult(overallScore: obs.overallScore, isUtility: obs.isUtility)
                 },
                 completion: completion

@@ -11,7 +11,7 @@ public class DetectHumanRectanglesRequest: ImageBasedRequest<HumanRectResult> {
         return create(
             VNDetectHumanRectanglesRequest.self,
             observationType: VNHumanObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 HumanRectResult(
                     frame: self.convertRect(obs.boundingBox, imageSize: context.imageSize),
                     confidence: obs.confidence

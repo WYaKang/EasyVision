@@ -32,6 +32,7 @@ public class TrackObjectRequest: ImageBasedRequest<TrackedObjectResult> {
                 )
             }
             completion(.success(mapped))
-        }        return req
+        }
+        return req
     }
 }

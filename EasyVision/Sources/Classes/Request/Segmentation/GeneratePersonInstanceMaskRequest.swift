@@ -11,7 +11,7 @@ public class GeneratePersonInstanceMaskRequest: ImageBasedRequest<PersonInstance
         return create(
             VNGeneratePersonInstanceMaskRequest.self,
             observationType: VNInstanceMaskObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 return PersonInstanceMaskResult(
                     pixelBuffer: obs.instanceMask,
                     allInstances: obs.allInstances

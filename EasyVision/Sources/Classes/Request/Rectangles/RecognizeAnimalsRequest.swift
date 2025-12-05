@@ -14,7 +14,7 @@ public class RecognizeAnimalsRequest: ImageBasedRequest<AnimalRecognitionResult>
         return create(
             VNRecognizeAnimalsRequest.self,
             observationType: VNRecognizedObjectObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 guard let best = obs.labels.first else { return nil }
                 return AnimalRecognitionResult(
                     frame: self.convertRect(obs.boundingBox, imageSize: context.imageSize),

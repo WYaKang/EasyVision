@@ -31,6 +31,7 @@ public class GenerateAttentionSaliencyRequest: ImageBasedRequest<SalientObjectRe
                 )
             }
             completion(.success(mapped))
-        }        return req
+        }
+        return req
     }
 }

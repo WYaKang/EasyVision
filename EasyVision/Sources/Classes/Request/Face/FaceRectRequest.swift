@@ -19,7 +19,7 @@ public class FaceRectRequest: ImageBasedRequest<FaceRectResult> {
         return create(
             VNDetectFaceRectanglesRequest.self,
             observationType: VNFaceObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 // pitch 在 iOS 15+ 可用，Vision 提供了属性但需检查可用性或直接访问
                 // obs.pitch, obs.yaw, obs.roll 均为 NSNumber?
                 return FaceRectResult(

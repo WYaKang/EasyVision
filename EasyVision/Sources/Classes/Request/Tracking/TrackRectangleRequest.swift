@@ -31,6 +31,7 @@ public class TrackRectangleRequest: ImageBasedRequest<TrackedRectangleResult> {
                 )
             }
             completion(.success(mapped))
-        }        return req
+        }
+        return req
     }
 }

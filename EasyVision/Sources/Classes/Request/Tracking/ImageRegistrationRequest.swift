@@ -24,7 +24,7 @@ public class TrackHomographicImageRegistrationRequest: ImageBasedRequest<ImageRe
         return create(
             VNTrackHomographicImageRegistrationRequest.self,
             observationType: VNImageHomographicAlignmentObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 // 透视变换对应 warpTransform，这里 alignmentTransform 可能不适用或为 identity
                 // Homographic 观察提供 warpTransform (3x3 matrix)
                 // 但 CGAffineTransform 只有 2x3，所以这里仅返回基础结构，完整矩阵需从 observation 获取

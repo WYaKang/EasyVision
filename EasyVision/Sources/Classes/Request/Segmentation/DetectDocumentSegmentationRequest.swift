@@ -11,7 +11,7 @@ public class DetectDocumentSegmentationRequest: ImageBasedRequest<DocumentSegmen
         return create(
             VNDetectDocumentSegmentationRequest.self,
             observationType: VNRectangleObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 // 文档分割返回的是 VNRectangleObservation，表示文档的四角
                 return DocumentSegmentationResult(
                     frame: self.convertRectangleObservation(obs, imageSize: context.imageSize),

@@ -33,7 +33,7 @@ public class FaceLandmarksRequest: ImageBasedRequest<FaceLandmarksResult> {
         return create(
             VNDetectFaceLandmarksRequest.self,
             observationType: VNFaceObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 let lm = obs.landmarks
                 return FaceLandmarksResult(
                     frame: self.convertRect(obs.boundingBox, imageSize: context.imageSize),

@@ -13,7 +13,7 @@ public class ClassifyImageRequest: ImageBasedRequest<ImageClassificationResult> 
         return create(
             VNClassifyImageRequest.self,
             observationType: VNClassificationObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 ImageClassificationResult(
                     identifier: obs.identifier,
                     confidence: obs.confidence,

@@ -16,7 +16,7 @@ public class HumanBodyPose3DRequest: ImageBasedRequest<BodyPose3DResult> {
         return create(
             VNDetectHumanBodyPose3DRequest.self,
             observationType: VNHumanBodyPose3DObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 var joints: [String: SIMD3<Float>] = [:]
                 var points2D: [CGPoint] = []
                 for name in obs.availableJointNames {

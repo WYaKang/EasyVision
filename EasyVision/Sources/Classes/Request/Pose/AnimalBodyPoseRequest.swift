@@ -12,7 +12,7 @@ public class AnimalBodyPoseRequest: ImageBasedRequest<AnimalBodyPoseResult> {
         return create(
             VNDetectAnimalBodyPoseRequest.self,
             observationType: VNAnimalBodyPoseObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 let dict = (try? obs.recognizedPoints(.all)) ?? [:]
                 var points: [String: CGPoint] = [:]
                 var confs: [String: Float] = [:]

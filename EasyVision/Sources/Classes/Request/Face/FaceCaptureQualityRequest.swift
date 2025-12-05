@@ -26,7 +26,7 @@ public class FaceCaptureQualityRequest: ImageBasedRequest<FaceCaptureQualityResu
         return create(
             VNDetectFaceCaptureQualityRequest.self,
             observationType: VNFaceObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 return FaceCaptureQualityResult(
                     frame: self.convertRect(obs.boundingBox, imageSize: context.imageSize),
                     confidence: obs.confidence,

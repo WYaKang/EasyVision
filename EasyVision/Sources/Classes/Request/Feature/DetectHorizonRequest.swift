@@ -11,7 +11,7 @@ public class DetectHorizonRequest: ImageBasedRequest<HorizonResult> {
         return create(
             VNDetectHorizonRequest.self,
             observationType: VNHorizonObservation.self,
-                        transform: { obs in
+            transform: { obs in
                 HorizonResult(angleRadians: obs.angle, transform: obs.transform)
             },
             completion: completion
