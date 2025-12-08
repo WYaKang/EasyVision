@@ -1,19 +1,6 @@
 import SwiftUI
 import EasyVision
-
-struct FaceRectView: View {
-    var body: some View {
-        VisionDemoView<Any>(title: "人脸检测", defaultImageName: "image_face") { image in
-            let req = FaceRectRequest()
-            let res = try await EasyVision.shared.detect(req, in: image)
-            var drawn = image
-            for item in res {
-                if let newImg = item.draw(on: drawn) { drawn = newImg }
-            }
-            return res.isEmpty ? nil : drawn
-        }
-    }
-}
+import Vision
 
 struct FaceLandmarksView: View {
     var body: some View {
