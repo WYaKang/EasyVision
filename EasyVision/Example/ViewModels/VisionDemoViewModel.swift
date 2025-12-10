@@ -24,9 +24,13 @@ class VisionDemoViewModel: ObservableObject {
     
     func processImage(action: @escaping (UIImage) async throws -> UIImage?) {
         guard let uiImage = image else { return }
+        // 避免重复触发
+        guard !isProcessing else { return }
+        
         isProcessing = true
         errorMessage = nil
-        resultImage = nil
+        // 注意：不在此处重置 resultImage，以免 UI 闪烁或数据丢失
+        // resultImage = nil 
         
         Task {
             do {
