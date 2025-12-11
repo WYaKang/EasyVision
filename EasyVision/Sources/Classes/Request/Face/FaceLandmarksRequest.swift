@@ -29,10 +29,20 @@ public struct FaceLandmarksResult {
 
 public class FaceLandmarksRequest: ImageBasedRequest<FaceLandmarksResult> {
     
+    public var constellation: VNRequestFaceLandmarksConstellation = .constellation76Points
+    
+    public init(config: ImageRequestConfig = ImageRequestConfig(), constellation: VNRequestFaceLandmarksConstellation = .constellation76Points) {
+        self.constellation = constellation
+        super.init(config: config)
+    }
+    
     public override func makeVNRequest(context: VisionRequestContext, completion: @escaping (Result<[FaceLandmarksResult], Error>) -> Void) -> VNRequest {
         return create(
             VNDetectFaceLandmarksRequest.self,
             observationType: VNFaceObservation.self,
+            configuration: { req in
+                req.constellation = self.constellation
+            },
             transform: { obs in
                 let lm = obs.landmarks
                 
