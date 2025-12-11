@@ -168,22 +168,38 @@ struct VisionDemoConfigView<Content: View>: View {
             }
             
             // 按钮
-            if viewModel.image != nil {
-                Button(action: {
-                    viewModel.processImage(action: performRequest)
-                }) {
-                    Label("开始识别", systemImage: "play.fill")
-                        .font(.headline)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(viewModel.isProcessing ? Color.gray : Color.blue)
-                        .foregroundColor(.white)
-                        .cornerRadius(10)
+            HStack(spacing: 12) {
+                if viewModel.image != nil {
+                    Button(action: {
+                        viewModel.processImage(action: performRequest)
+                    }) {
+                        Label("开始识别", systemImage: "play.fill")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(viewModel.isProcessing ? Color.gray : Color.blue)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                    .disabled(viewModel.isProcessing)
                 }
-                .disabled(viewModel.isProcessing)
-                .padding(.horizontal)
-                .padding(.bottom, 8)
+                
+                if viewModel.resultImage != nil {
+                    Button(action: {
+                        viewModel.saveResult()
+                    }) {
+                        Label("保存", systemImage: "square.and.arrow.down")
+                            .font(.headline)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.green)
+                            .foregroundColor(.white)
+                            .cornerRadius(10)
+                    }
+                }
             }
+            .padding(.horizontal)
+            .padding(.bottom, 8)
         }
         .background(Color(UIColor.systemBackground))
     }
@@ -224,6 +240,9 @@ struct VisionDemoView<Content: View>: View {
         //.navigationTitle(title) // 导航标题通常由外部 NavigationView 控制
         .sheet(isPresented: $viewModel.showingPicker) {
             ImagePicker(image: $viewModel.image)
+        }
+        .alert(isPresented: $viewModel.showSaveAlert) {
+            Alert(title: Text("提示"), message: Text(viewModel.saveAlertMessage), dismissButton: .default(Text("确定")))
         }
         .onChange(of: viewModel.image) { _ in
             viewModel.reset()
